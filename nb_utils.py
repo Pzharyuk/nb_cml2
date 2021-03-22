@@ -143,7 +143,7 @@ def allocate_ip(prefix_id,hostname,payload):
             console.print("[bold green]Hostname is: {}[/bold green]".format(create.dns_name))
             console.print("[bold green]IP is: {}[/bold green]".format(create.address))
             console.print("[bold green]Gateway is: {}[/bold green]".format(gateway.address[:-3]))
-    except p nb_lab.core.query.RequestError as e:
+    except nb_lab.core.query.RequestError as e:
         console.print("[bold red]{}[/bold red]".format(e.error))
     return ip
         
