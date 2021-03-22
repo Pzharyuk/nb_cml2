@@ -1,0 +1,29 @@
+hostname {{ data.hostname }}
+!
+vtp domain cml
+vtm mode transparent
+!
+vrf definition Mgmt-intf
+!
+ address-family ipv4
+ exit-address-family
+!
+interface {{ data.interface }}
+ no switchport
+ vrf forwarding Mgmt-intf
+ ip address {{ data.ip}} {{ data.mask }}
+ no shut
+!
+username cisco privilege 15 secret cisco
+ip ssh version 2
+ip domain-name cml.local
+!
+crypto key generate rsa modulus 2048
+!
+{% if data.gateway is defined %}
+ip route vrf Mgmt-intf 0.0.0.0 0.0.0.0 {{ data.gateway }}
+!
+line vty 0 4
+login local
+
+{% endif %}
