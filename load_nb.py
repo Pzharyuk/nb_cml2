@@ -1,26 +1,27 @@
 from nb_utils import *
 
-# Manufacturer name
-manufacturer = "cisco"
-
-# List of management interfaces
-mgmt_intf = [
-    "GigabitEthernet0",
-    "GigabitEthernet1",
-    "mgmt0" 
-    ]
 # Lab Name variable
 lab_name = "pdx-cloud-test"
 
+# Manufacturer name
+manufacturer = "cisco"
+
+# Managment interface dictionary
+mgmt_intf =  {
+    "iosv": "GigabitEthernet0",
+    "csr1000v": "GigabitEthernet1",
+    "nxos": "mgmt0"
+}
+
 # Platform list
-pltfrm = [
-    "ios",
-    "iosxe",
-    "nxos"
-    ]
+platform = {
+    "ios": "ios",
+    
+    "nxos": "nxos"
+}
 
 # Check and add platform if needed
-create_platform = device_platform(pltfrm[0])
+create_platform = device_platform(platform['ios'])
 
 # Check if manufacturer exisist, if not create it
 create_manufacturer = nb_lab_manufacturer(manufacturer)
@@ -48,4 +49,4 @@ payload = ip_payload(hostname,tag_id)
 ip = allocate_ip(prefix_id,hostname,payload)
 
 # Generate configs using Jinja2
-ios_config = jinja2_conf_gen(ip,hostname,mgmt_intf[1],pltfrm[0])
+ios_config = jinja2_conf_gen(ip,hostname,mgmt_intf['iosv'],platform['ios'])

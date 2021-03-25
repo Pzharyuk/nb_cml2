@@ -2,7 +2,6 @@
 __author__ = "Paul Zharyuk"
 __status__ = "Lab"
 
-#from platform import platform
 import pynetbox
 import requests
 from requests.auth import HTTPBasicAuth
@@ -53,7 +52,6 @@ def tag(tag):
     return tag_id.id
 
 def ip_payload(hostname,tag_id):
-    """ Json body used to create IP's """
     payload = []
     for h in hostname:
         payload.append(
@@ -68,8 +66,8 @@ def ip_payload(hostname,tag_id):
     return payload
 
 def nb_lab_manufacturer(name):
-    nb_manufacturer = nb_lab.dcim.manufacturers.get(name=name)
-    if nb_manufacturer is None:
+    nb_manufacturer = nb_lab.dcim.manufacturers.get(slug=f"{name}")
+    if not nb_manufacturer:
         # Create a slug from the name
         slug = (
             name.lower()
@@ -84,9 +82,9 @@ def nb_lab_manufacturer(name):
         )
     return nb_manufacturer
     
-def device_platform(pltfrm):
+def device_platform(platform):
     """Get or Create a nb_lab Device Platform"""
-    for p in pltfrm:
+    for p in platform:
         nb_platform = nb_lab.dcim.platforms.get(name=p)
         if nb_platform is None:
             # Create slug from name
@@ -117,11 +115,11 @@ def get_interface(tag):
 #     return hostname
 
 # def get_platform(tag):
-#     pltfrm = []
+#     platform = []
 #     platform = nb_lab.dcim.devices.filter(tag=tag)
 #     for h in platform:
-#          pltfrm.append(h['platform']['name'])
-#     return pltfrm
+#          platform.append(h['platform']['name'])
+#     return platform
 
 def get_prefix_id(tag):
     prefix = nb_lab.ipam.prefixes.get(tag=f"{tag}")
@@ -147,7 +145,7 @@ def allocate_ip(prefix_id,hostname,payload):
         console.print("[bold red]{}[/bold red]".format(e.error))
     return ip
         
-def jinja2_conf_gen(ip,hostname,interface,pltfrm):
+def jinja2_conf_gen(ip,hostname,interface,platform):
     """ Generate configs using Jinja2 """
     gateway = nb_lab.ipam.ip_addresses.get(tag="cml2_gateway")
     cml2_vars = []
@@ -162,21 +160,21 @@ def jinja2_conf_gen(ip,hostname,interface,pltfrm):
             )
         )
         
-    if pltfrm == "ios": 
+    if platform == "ios": 
         with open("./templates/cml2_ios_confgen.j2") as f:
             cml_template = Template(f.read())
         for (h,v) in itertools.zip_longest(hostname,cml2_vars):
             with open(f"configs/{h}_startup.config", 'w') as f:
                 config_out = cml_template.render(data=v)
                 f.write(config_out)
-    elif pltfrm == "iosxe":
+    elif platform == "iosxe":
         with open("./templates/cml2_ios_confgen.j2") as f:
             cml_template = Template(f.read())
         for (h,v) in itertools.zip_longest(hostname,cml2_vars):
             with open(f"configs/{h}_startup.config", 'w') as f:
                 config_out = cml_template.render(data=v)
                 f.write(config_out)
-    elif pltfrm == "nxos":
+    elif platform == "nxos":
         with open("./templates/cml2_nxos_confgen.j2") as f:
             cml_template = Template(f.read())
         for (h,v) in itertools.zip_longest(hostname,cml2_vars):
