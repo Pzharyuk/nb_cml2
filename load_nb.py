@@ -1,52 +1,67 @@
 from nb_utils import *
+from cml2_utils import cml_get_node_definitions
+from nb_utils import *
+
+""" 
+Node Definitions
+
+Management:
+external_connector | unmanaged_switch
+
+Routers:
+csr1000v | iosv | iosxrv | iosxrv900
+
+Switches: 
+iosvl2  | nxosv9000 | nxosv
+
+Servers: 
+alpine | linux | server | coreos | desktop | ubuntu 0
+
+Firewall:
+asav 
+
+SDWAN:
+viptela-smart | viptela-bond | viptela-edge | iosxe-sdwan
+
+"""
+
 
 # Lab Name variable
 lab_name = "pdx-cloud-test"
 
-# Manufacturer name
-manufacturer = "cisco"
-
-# Managment interface dictionary
-mgmt_intf =  {
-    "iosv": "GigabitEthernet0",
-    "csr1000v": "GigabitEthernet1",
-    "nxos": "mgmt0"
+# Dictioary of hostnames + nodes definition to be used in the topology 
+nodes = {
+    "AZURE1": "csr1000v",
+    "AZURE2": "iosv",
+    "CLOUD1": "iosvl2",
+    "CLOUD2": "nxosv",
+    "CLOUD4": "iosxe-sdwan"
 }
 
-# Platform list
-platform = {
-    "ios": "ios",
-    
-    "nxos": "nxos"
-}
+# Platform list used to generate jinja configs based on platform
+platform = []
 
-# Check and add platform if needed
-create_platform = device_platform(platform['ios'])
+for k,v in nodes.items():
+    get_node_details = cml_get_node_definitions(v)
+    for g in get_node_details:
+        platform.append(g['device_platform'])
+        tag = nb_tag(lab_name)
+        site = nb_site(lab_name)
+        dev_manufacturer = nb_device_manufacturer(g['device_manufacturer'])
+        dev_type = nb_device_type(g['device_type'],dev_manufacturer)
+        dev_platform = nb_device_platform(g['device_platform'])
+        dev_role = nb_device_role(g['device_role'])
+        device = nb_device(site,dev_type,k,tag)
 
-# Check if manufacturer exisist, if not create it
-create_manufacturer = nb_lab_manufacturer(manufacturer)
-
-# Create a list of devices to be used in the lab
-hostname = [
-    "AZURE1",
-    "AZURE2",
-    "CLOUD1",
-    "CLOUD2",
-]
-
+# Get hostnames
+hostname = nodes.keys()
+# Get or create tag with lab name        
+tag_id = nb_tag(lab_name)
 # Get prefix id
-prefix_tag = "cml2" # The prefix is tagged with cml2, makes it easy to retrieve
-prefix_id = get_prefix_id(f"{prefix_tag}") # Get the prefix ID
-
-
-# Check if tag with lab name exist, if not create it
-tag_id = tag(f"{lab_name}")
-
+prefix_id = nb_get_prefix_id("cml2") # Get the prefix ID      
 # Create payload for Netbox IP allocation
-payload = ip_payload(hostname,tag_id)
-
+payload = nb_ip_payload(nodes.keys(),tag_id.id)
 # Allocate IP's in Netbox
-ip = allocate_ip(prefix_id,hostname,payload)
-
+ip = nb_allocate_ip(prefix_id,nodes.keys(),payload)
 # Generate configs using Jinja2
-ios_config = jinja2_conf_gen(ip,hostname,mgmt_intf['iosv'],platform['ios'])
+ios_config = nb_jinja2_conf_gen(ip,hostname,platform)

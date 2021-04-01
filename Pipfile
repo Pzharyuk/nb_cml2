@@ -11,6 +11,7 @@ python-dotenv = "*"
 rich = "*"
 netaddr = "*"
 jinja2 = "*"
+numpy = "*"
 
 [dev-packages]
 
