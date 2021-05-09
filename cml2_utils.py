@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from numpy import random
+import itertools
 load_dotenv()
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -79,14 +80,28 @@ def cml_create_lab_topology(tag,nodes):
             
     lab = client.create_lab(title=tag)
 
-    ext = lab.create_node("EXT-MGMT", "external_connector", 0, 50)
+    ext = lab.create_node("EXT-MGMT", "external_connector", 50, 0)
     ext.add_tag(tag)
     ext.config = "bridge0"
-    oob_sw = lab.create_node("OOB", "unmanaged_switch", 0, 150)
+    oob_sw = lab.create_node("OOB", "unmanaged_switch", 50, 100)
+    x = 0
+    y = 100
     for k,v in nodes.items():
         for files in read_files:
+            x = x - 50
+            y = y + 50
             if k in files:
-                x = 100
-                y = 300
                 node = lab.create_node(k, v, -x, y)
                 node.config = files
+
+
+# x=0
+# y=100
+
+# list_a=(1,2,3,4,5,6)
+
+# for a in list_a:
+#     x=x+50
+#     if '5' in str(x):
+#         y=y+50
+#         x=x-100

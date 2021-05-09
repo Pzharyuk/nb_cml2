@@ -9,15 +9,13 @@ nodes = {
 "AZURE1": "csr1000v",
 "AZURE2": "iosv",
 "CLOUD1": "iosvl2",
-"CLOUD2": "nxosv",
-"CLOUD4": "iosxe-sdwan"
+"CLOUD2": "nxosv"
 }
  
 # read_files = cml_read_config_files()
-
-# for k,v in nodes.items():
-#     for files in read_files:
-#         if k in files:
-#             print(files)
+count = 0
+for k,v in nodes.items():
+    num_list = count + len(k)
+    print(num_list)
         
 create_lab = cml_create_lab_topology(tag,nodes)
